@@ -1,1029 +1,1542 @@
-# 🎓 Learning Management System (LMS)
+# 🎓 Learning Management System (LMS) - Complete Technical Documentation
 
-A full-stack web application simulating a complete Learning Management System with integrated banking, course management, and certification features.
-
-![Node.js](https://img.shields.io/badge/Node.js-v14+-green)
-![React](https://img.shields.io/badge/React-18.2.0-blue)
-![MongoDB](https://img.shields.io/badge/MongoDB-6.0-brightgreen)
-![Express](https://img.shields.io/badge/Express-4.18.2-lightgrey)
+A full-stack Learning Management System with integrated banking, built with the MERN stack (MongoDB, Express, React, Node.js).
 
 ---
 
-## 📋 Table of Contents
+## 📑 Table of Contents
 
-- [Overview](#overview)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [Installation & Setup](#installation--setup)
-- [API Documentation](#api-documentation)
-- [User Flows](#user-flows)
-- [Database Schema](#database-schema)
-- [Screenshots](#screenshots)
-- [Testing](#testing)
-- [Troubleshooting](#troubleshooting)
-- [Team & Contribution](#team--contribution)
+1. [System Overview](#system-overview)
+2. [Architecture Deep Dive](#architecture-deep-dive)
+3. [Backend Architecture](#backend-architecture)
+4. [Frontend Architecture](#frontend-architecture)
+5. [Database Models Explained](#database-models-explained)
+6. [Business Logic Flow](#business-logic-flow)
+7. [Complete Setup Guide](#complete-setup-guide)
+8. [API Reference](#api-reference)
+9. [State Management](#state-management)
+10. [Security & Validation](#security--validation)
 
 ---
 
-## 🎯 Overview
+## 1. System Overview
 
-This Learning Management System is a comprehensive platform that connects three key entities:
+### 1.1 What Does This System Do?
 
-1. **Learners** - Enroll in courses, complete lessons, and earn certificates
-2. **Instructors** - Upload courses, manage materials, and earn revenue
-3. **LMS Organization** - Manage platform, process transactions, and oversee operations
+This LMS simulates a complete learning platform ecosystem with three main actors:
 
-### Key Highlights
+**🎓 Learners** can:
+- Create accounts and set up secure bank accounts
+- Browse available courses
+- Purchase courses using their balance
+- Access course materials (videos, text, audio, quizzes)
+- Track their learning progress
+- Earn certificates upon completion
 
-- 💳 Integrated banking system for secure transactions
-- 📚 Support for multiple material types (video, text, audio, MCQ)
-- 🏆 Automatic certificate generation upon course completion
-- 💰 Revenue sharing model (70% instructor, 30% platform)
-- 📊 Real-time progress tracking
-- 🎨 Modern, responsive UI with Tailwind CSS
+**👨‍🏫 Instructors** can:
+- Upload courses with multiple material types
+- Earn $200 instantly when uploading a course
+- Receive 70% of course price when students enroll
+- Edit and manage their course materials
+- Track their earnings
 
----
+**⚙️ Admin (LMS Platform)** can:
+- Monitor all transactions
+- View platform statistics
+- Manage overall system health
+- Retain 30% of all enrollment fees
 
-## ✨ Features
+### 1.2 Why This Architecture?
 
-### For Learners
-
-- ✅ User registration and authentication
-- ✅ Bank account setup with secure PIN
-- ✅ Browse 5 pre-loaded courses
-- ✅ Enroll in courses with automatic payment processing
-- ✅ Interactive course viewer with material navigation
-- ✅ Track progress across all enrolled courses
-- ✅ Mark individual lessons as complete
-- ✅ Earn certificates upon course completion
-- ✅ Real-time balance updates
-
-### For Instructors
-
-- ✅ Upload new courses with multiple materials
-- ✅ Add/edit course materials (video, audio, text, quiz)
-- ✅ Receive $200 upload fee per course
-- ✅ Earn 70% revenue share on enrollments
-- ✅ View course statistics
-- ✅ Track earnings and balance
-
-### For Administrators
-
-- ✅ View platform statistics
-- ✅ Monitor all transactions
-- ✅ Track total courses and enrollments
-- ✅ Oversee revenue and balances
-- ✅ Platform health metrics
+This project demonstrates:
+- RESTful API design principles
+- Database relationships and data modeling
+- Transaction processing and state management
+- Real-time balance updates
+- Secure payment flow simulation
+- Multi-user role-based access
 
 ---
 
-## 🏗️ System Architecture
+## 2. Architecture Deep Dive
 
-### High-Level Architecture
+### 2.1 Three-Tier Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         Frontend (React)                     │
-│  ┌────────────┐  ┌────────────┐  ┌────────────┐            │
-│  │  Learner   │  │ Instructor │  │   Admin    │            │
-│  │ Dashboard  │  │ Dashboard  │  │ Dashboard  │            │
-│  └────────────┘  └────────────┘  └────────────┘            │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                    REST API (JSON)
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                    Backend (Node.js + Express)               │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              API Endpoints & Controllers              │  │
-│  └──────────────────────────────────────────────────────┘  │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Business Logic & Services                │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                  MongoDB Connection
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                    Database (MongoDB)                        │
-│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐   │
-│  │Users │ │Course│ │Enroll│ │Trans │ │Cert  │ │Bank  │   │
-│  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘ └──────┘   │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────┐
+│                   PRESENTATION LAYER                     │
+│                      (React Frontend)                    │
+│                                                          │
+│  User Interface, State Management, Client-Side Logic    │
+└─────────────────────────────────────────────────────────┘
+                         ↕ HTTP/REST
+┌─────────────────────────────────────────────────────────┐
+│                   APPLICATION LAYER                      │
+│                  (Node.js + Express Backend)             │
+│                                                          │
+│  API Routes, Business Logic, Validation, Controllers    │
+└─────────────────────────────────────────────────────────┘
+                         ↕ Mongoose ODM
+┌─────────────────────────────────────────────────────────┐
+│                      DATA LAYER                          │
+│                    (MongoDB Database)                    │
+│                                                          │
+│  Users, Courses, Enrollments, Transactions, etc.        │
+└─────────────────────────────────────────────────────────┘
 ```
 
-### Request Flow Example: Course Enrollment
+### 2.2 Request-Response Cycle
+
+Let's trace what happens when a learner enrolls in a course:
 
 ```
-1. Learner clicks "Enroll Now"
+1. USER ACTION
+   Learner clicks "Enroll Now" on "Web Development" course ($99)
    ↓
-2. Frontend sends POST /api/enrollments
+   
+2. FRONTEND (React)
+   - CourseCard.jsx captures the click event
+   - Calls onEnroll() function passed from LearnerDashboard
+   - LearnerDashboard calls enrollCourse() from api.js
+   - api.js makes HTTP POST to /api/enrollments
+   
+   POST /api/enrollments
+   Body: {
+     learnerId: "507f1f77bcf86cd799439011",
+     courseId: "507f1f77bcf86cd799439012",
+     bankSecret: "secret123"
+   }
    ↓
-3. Backend validates bank secret
+   
+3. BACKEND (Express Route)
+   - Request hits server.js
+   - CORS middleware allows the request
+   - body-parser parses JSON
+   - Routes to: POST /api/enrollments handler
    ↓
-4. Process payment (Learner → LMS)
+   
+4. BACKEND (Business Logic)
+   a) Find learner in Users collection
+   b) Find course in Courses collection
+   c) Check if already enrolled (query Enrollments collection)
+   d) Validate bank secret matches user's stored secret
+   e) Get learner's bank account
+   f) Check if balance >= course price ($99)
+   
+   If insufficient funds → return 400 error
+   If valid → continue
    ↓
-5. Create enrollment record
+   
+5. TRANSACTION PROCESSING
+   a) Deduct $99 from learner's bank account
+      LearnerAccount.balance: $1000 → $901
+      
+   b) Add $99 to LMS admin account
+      LMSAccount.balance: $10000 → $10099
+      
+   c) Save both accounts to database
+   
+   d) Create transaction record:
+      {
+        transactionId: "TXN1705401234567",
+        from: "learner_id",
+        to: "admin_id",
+        amount: 99,
+        description: "Enrollment in Web Development"
+      }
    ↓
-6. Transfer revenue to instructor (LMS → Instructor)
+   
+6. ENROLLMENT CREATION
+   Create new enrollment:
+   {
+     learnerId: "507f1f77bcf86cd799439011",
+     courseId: "507f1f77bcf86cd799439012",
+     completed: false,
+     progress: 0,
+     createdAt: new Date()
+   }
    ↓
-7. Return success with updated balance
+   
+7. INSTRUCTOR PAYMENT (Revenue Share)
+   a) Calculate 70% of $99 = $69.30
+   b) Deduct $69.30 from LMS account
+      LMSAccount.balance: $10099 → $10029.70
+   c) Add $69.30 to instructor's account
+      InstructorAccount.balance: $500 → $569.30
+   d) Create transaction record for instructor payment
    ↓
-8. Frontend updates UI
+   
+8. RESPONSE SENT
+   Backend sends JSON response:
+   {
+     success: true,
+     enrollment: {...},
+     transaction: {...},
+     newBalance: 901
+   }
+   ↓
+   
+9. FRONTEND UPDATES
+   - LearnerDashboard receives response
+   - Updates local state: setEnrolledCourses([...courses, newCourseId])
+   - Updates balance: onBalanceUpdate(901)
+   - Shows success message
+   - CourseCard re-renders showing "Enrolled" status
+   - "Enroll Now" button changes to "Start Learning"
 ```
 
-### Transaction Flow
+### 2.3 Data Flow Diagram
 
 ```
-Course Price: $99
-├── Learner Account: -$99
-├── LMS Account: +$99
-│   └── LMS Account: -$69.30 (70%)
-│       └── Instructor Account: +$69.30
-└── LMS Retains: $29.70 (30%)
+┌──────────┐      ┌──────────┐      ┌───────────┐      ┌──────────┐
+│ Learner  │─────▶│   LMS    │─────▶│Instructor│      │ Database │
+│ Account  │      │ Account  │      │ Account  │      │          │
+└──────────┘      └──────────┘      └───────────┘      └──────────┘
+    -$99             +$99              +$69.30              ▲
+                     -$69.30                                │
+                     ────────                                │
+                     Net: +$29.70                           │
+                     (30% platform fee)                     │
+                                                            │
+                     All changes saved here ────────────────┘
 ```
 
 ---
 
-## 🛠️ Technology Stack
+## 3. Backend Architecture
 
-### Frontend
+### 3.1 Server.js - The Heart of the Backend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| React | 18.2.0 | UI framework |
-| Tailwind CSS | 3.x | Styling |
-| Axios | 1.6.0 | HTTP client |
-| Lucide React | 0.263.1 | Icons |
+**Location:** `backend/server.js`
 
-### Backend
+This single file contains our entire backend. Here's how it's organized:
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Node.js | 14+ | Runtime environment |
-| Express | 4.18.2 | Web framework |
-| MongoDB | 6.0+ | Database |
-| Mongoose | 8.0.0 | ODM |
-| CORS | 2.8.5 | Cross-origin requests |
-| dotenv | 16.3.1 | Environment variables |
+```javascript
+// ============= SECTION 1: IMPORTS & SETUP =============
+require('dotenv').config();           // Load environment variables
+const express = require('express');    // Web framework
+const cors = require('cors');          // Allow cross-origin requests
+const mongoose = require('mongoose');  // MongoDB ODM
 
-### Development Tools
+// ============= SECTION 2: MODEL IMPORTS =============
+const User = require('./models/User');
+const Course = require('./models/Course');
+// ... (all 7 models)
 
-- Nodemon - Auto-restart server
-- ESLint - Code linting
-- VS Code - IDE
+// ============= SECTION 3: EXPRESS APP CONFIG =============
+const app = express();
+app.use(cors());                       // Enable CORS
+app.use(bodyParser.json());            // Parse JSON bodies
 
----
+// ============= SECTION 4: DATABASE CONNECTION =============
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('MongoDB Connected');
+    initializeData();                  // Seed if needed
+  });
 
-## 📁 Project Structure
+// ============= SECTION 5: UTILITY FUNCTIONS =============
+const generateTransactionId = () => { ... }
+const generateCertificateId = () => { ... }
 
-```
-lms-project/
-├── backend/
-│   ├── models/
-│   │   ├── User.js                 # User schema
-│   │   ├── Course.js               # Course schema
-│   │   ├── Enrollment.js           # Enrollment schema
-│   │   ├── Transaction.js          # Transaction schema
-│   │   ├── Certificate.js          # Certificate schema
-│   │   ├── BankAccount.js          # Bank account schema
-│   │   └── Progress.js             # Progress tracking schema
-│   ├── server.js                   # Main server file
-│   ├── seed.js                     # Database seeding script
-│   ├── package.json
-│   ├── .env                        # Environment variables
-│   └── README.md
-│
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Login.jsx           # Login page
-│   │   │   ├── BankSetup.jsx       # Bank account setup
-│   │   │   ├── Navbar.jsx          # Navigation bar
-│   │   │   ├── MessageAlert.jsx    # Alert notifications
-│   │   │   ├── CourseCard.jsx      # Course display card
-│   │   │   ├── CourseViewer.jsx    # Course material viewer
-│   │   │   ├── CourseEditor.jsx    # Instructor course editor
-│   │   │   ├── MaterialUpload.jsx  # Material upload component
-│   │   │   ├── LearnerDashboard.jsx    # Learner portal
-│   │   │   ├── InstructorDashboard.jsx # Instructor portal
-│   │   │   └── AdminDashboard.jsx      # Admin portal
-│   │   ├── services/
-│   │   │   └── api.js              # API service layer
-│   │   ├── App.jsx                 # Main app component
-│   │   ├── index.js                # Entry point
-│   │   └── index.css               # Global styles
-│   ├── package.json
-│   ├── tailwind.config.js
-│   └── README.md
-│
-└── README.md                        # This file
+// ============= SECTION 6: API ENDPOINTS =============
+
+// Authentication Routes
+app.post('/api/auth/login', async (req, res) => {
+  // Login logic
+});
+
+// Bank Routes
+app.post('/api/bank/setup', async (req, res) => {
+  // Bank setup logic
+});
+
+// Course Routes
+app.get('/api/courses', async (req, res) => {
+  // Get all courses
+});
+
+// Enrollment Routes
+app.post('/api/enrollments', async (req, res) => {
+  // Complex enrollment logic with transactions
+});
+
+// ... (25+ endpoints total)
+
+// ============= SECTION 7: SERVER START =============
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 ```
 
----
+### 3.2 Why This Structure?
 
-## 🚀 Installation & Setup
+**Advantages:**
+- ✅ Simple to understand - everything in one place
+- ✅ Easy to debug - no jumping between files
+- ✅ Quick to develop - no file organization overhead
+- ✅ Perfect for small-medium projects
 
-### Prerequisites
+**When to Refactor:**
+- ❌ When file exceeds 1000 lines
+- ❌ When multiple developers work on it
+- ❌ When you need to reuse business logic
 
-Before you begin, ensure you have the following installed:
+### 3.3 How Endpoints Work
 
-- **Node.js** (v14 or higher) - [Download](https://nodejs.org/)
-- **npm** (comes with Node.js)
-- **MongoDB** - [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier) or local installation
-- **Git** (optional)
+Each endpoint follows this pattern:
 
-### Step 1: Clone or Download the Project
-
-```bash
-# Clone the repository
-git clone <repository-url>
-
-# Or download and extract the ZIP file
-cd lms-project
-```
-
-### Step 2: Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Create .env file
-cat > .env << EOF
-PORT=3000
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/lms?retryWrites=true&w=majority
-EOF
-
-# Note: Replace the MONGODB_URI with your actual MongoDB connection string
-```
-
-#### MongoDB Setup
-
-**Option A: MongoDB Atlas (Cloud - Recommended)**
-
-1. Go to [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Create a free account
-3. Create a new cluster (M0 free tier)
-4. Click "Connect" → "Connect your application"
-5. Copy the connection string
-6. Replace `<username>`, `<password>`, and `<dbname>` in your `.env` file
-
-**Option B: Local MongoDB**
-
-```bash
-# Install MongoDB locally
-# macOS
-brew tap mongodb/brew
-brew install mongodb-community
-
-# Start MongoDB
-brew services start mongodb-community
-
-# Use local connection string in .env
-MONGODB_URI=mongodb://localhost:27017/lms
-```
-
-#### Seed the Database
-
-```bash
-# Run the seed script to populate initial data
-npm run seed
-```
-
-**Expected Output:**
-```
-🌱 Starting database seed...
-✅ Connected to MongoDB
-✅ Created 6 users
-✅ Created 4 bank accounts
-✅ Created 5 courses
-✅ Database seeded successfully!
-```
-
-#### Start the Backend Server
-
-```bash
-# Development mode (with auto-restart)
-npm run dev
-
-# Production mode
-npm start
-```
-
-**Expected Output:**
-```
-✅ MongoDB Connected Successfully
-📊 Database already initialized
-🚀 LMS Server running on http://localhost:3000
-```
-
-### Step 3: Frontend Setup
-
-Open a **new terminal window** and:
-
-```bash
-# Navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start the development server
-npm start
-```
-
-**Expected Output:**
-```
-Compiled successfully!
-
-You can now view frontend in the browser.
-
-  Local:            http://localhost:3001
-  On Your Network:  http://192.168.x.x:3001
-```
-
-### Step 4: Access the Application
-
-Open your browser and navigate to:
-
-```
-http://localhost:3001
-```
-
-You should see the LMS login page! 🎉
-
----
-
-## 🔑 Default Login Credentials
-
-### Learners
-- **Email:** `alice@example.com` | **Password:** `pass123`
-- **Email:** `bob@example.com` | **Password:** `pass123`
-
-### Instructors
-- **Email:** `john@example.com` | **Password:** `pass123`
-- **Email:** `jane@example.com` | **Password:** `pass123`
-- **Email:** `bob.j@example.com` | **Password:** `pass123`
-
-### Admin
-- **Email:** `admin@lms.com` | **Password:** `admin123`
-
----
-
-## 📡 API Documentation
-
-### Base URL
-
-```
-http://localhost:3000/api
-```
-
-### Authentication Endpoints
-
-#### POST /auth/login
-Login a user.
-
-**Request:**
-```json
-{
-  "email": "alice@example.com",
-  "password": "pass123",
-  "type": "learner"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": "...",
-    "name": "Alice Learner",
-    "email": "alice@example.com",
-    "type": "learner",
-    "accountNumber": "ACC123",
-    "bankSecret": "secret123",
-    "bankSetup": true
-  }
-}
-```
-
-#### POST /auth/register
-Register a new user.
-
-**Request:**
-```json
-{
-  "email": "newuser@example.com",
-  "password": "password123",
-  "name": "New User",
-  "type": "learner"
-}
-```
-
-### Bank Endpoints
-
-#### POST /bank/setup
-Setup bank account for a user.
-
-**Request:**
-```json
-{
-  "userId": "user_id_here",
-  "accountNumber": "ACC12345",
-  "bankSecret": "mySecret123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Bank account setup successful",
-  "balance": 1000
-}
-```
-
-#### GET /bank/balance/:userId
-Get user's bank balance.
-
-**Response:**
-```json
-{
-  "success": true,
-  "balance": 1000,
-  "accountNumber": "ACC12345"
-}
-```
-
-### Course Endpoints
-
-#### GET /courses
-Get all courses.
-
-**Response:**
-```json
-{
-  "success": true,
-  "courses": [
-    {
-      "id": "...",
-      "title": "Web Development Fundamentals",
-      "instructor": "John Doe",
-      "price": 99,
-      "description": "Learn HTML, CSS, and JavaScript",
-      "materials": [...]
+```javascript
+app.post('/api/enrollments', async (req, res) => {
+  try {
+    // 1. EXTRACT DATA from request
+    const { learnerId, courseId, bankSecret } = req.body;
+    
+    // 2. VALIDATE INPUT
+    if (!learnerId || !courseId || !bankSecret) {
+      return res.status(400).json({ error: 'Missing fields' });
     }
-  ]
+    
+    // 3. FETCH FROM DATABASE
+    const learner = await User.findById(learnerId);
+    const course = await Course.findById(courseId);
+    
+    // 4. BUSINESS LOGIC
+    if (learner.bankSecret !== bankSecret) {
+      return res.status(401).json({ error: 'Invalid secret' });
+    }
+    
+    // 5. DATABASE OPERATIONS
+    await BankAccount.updateOne(
+      { owner: learnerId },
+      { $inc: { balance: -course.price } }
+    );
+    
+    const enrollment = await Enrollment.create({
+      learnerId,
+      courseId,
+      completed: false
+    });
+    
+    // 6. SEND RESPONSE
+    res.json({
+      success: true,
+      enrollment,
+      newBalance: updatedBalance
+    });
+    
+  } catch (error) {
+    // 7. ERROR HANDLING
+    res.status(500).json({ error: error.message });
+  }
+});
+```
+
+---
+
+## 4. Frontend Architecture
+
+### 4.1 React Component Hierarchy
+
+```
+App.jsx (Root Component)
+│
+├─ Login.jsx
+│
+├─ BankSetup.jsx
+│
+├─ LearnerDashboard.jsx
+│  │
+│  ├─ Navbar.jsx
+│  ├─ MessageAlert.jsx
+│  ├─ CourseCard.jsx (multiple instances)
+│  └─ CourseViewer.jsx (modal)
+│     └─ Shows course materials
+│
+├─ InstructorDashboard.jsx
+│  │
+│  ├─ Navbar.jsx
+│  ├─ MessageAlert.jsx
+│  ├─ MaterialUpload.jsx
+│  ├─ CourseCard.jsx (multiple instances)
+│  └─ CourseEditor.jsx (modal)
+│
+└─ AdminDashboard.jsx
+   │
+   ├─ Navbar.jsx
+   └─ MessageAlert.jsx
+```
+
+### 4.2 State Management Flow
+
+**App.jsx - The State Container**
+
+```javascript
+function App() {
+  // ======= GLOBAL STATE =======
+  const [currentUser, setCurrentUser] = useState(null);
+  const [view, setView] = useState('login');
+  const [balance, setBalance] = useState(null);
+  const [bankSecret, setBankSecret] = useState('');
+  
+  // ======= WHY THESE STATES? =======
+  
+  // currentUser: Stores logged-in user info
+  // - Used to identify user across all components
+  // - Contains: id, name, email, type
+  
+  // view: Controls which page to show
+  // - Values: 'login' | 'bankSetup' | 'learnerDashboard' | 
+  //           'instructorDashboard' | 'adminDashboard'
+  
+  // balance: User's current bank balance
+  // - Updated after every transaction
+  // - Displayed in Navbar
+  
+  // bankSecret: Learner's bank PIN
+  // - Needed for all payment operations
+  // - Stored only in memory (not localStorage)
+  
+  // ======= STATE FLOW =======
+  
+  // Login Success →
+  const handleLoginSuccess = async (user, type) => {
+    setCurrentUser(user);              // Store user
+    if (user.bankSecret) {
+      setBankSecret(user.bankSecret);  // Load secret if exists
+    }
+    await loadBalance(user.id);        // Fetch balance from backend
+    setView(type + 'Dashboard');       // Navigate to dashboard
+  };
+  
+  // Balance Update →
+  const handleBalanceUpdate = (newBalance) => {
+    setBalance(newBalance);            // Update after transaction
+  };
+  
+  // Logout →
+  const handleLogout = () => {
+    setCurrentUser(null);              // Clear user
+    setBalance(null);                  // Clear balance
+    setBankSecret('');                 // Clear secret
+    setView('login');                  // Back to login
+  };
+  
+  return (
+    <div>
+      {view === 'login' && <Login onLoginSuccess={handleLoginSuccess} />}
+      {view === 'learnerDashboard' && (
+        <LearnerDashboard
+          currentUser={currentUser}
+          balance={balance}
+          bankSecret={bankSecret}
+          onBalanceUpdate={handleBalanceUpdate}
+          onLogout={handleLogout}
+        />
+      )}
+      {/* Other views... */}
+    </div>
+  );
 }
 ```
 
-#### POST /courses
-Upload a new course (instructors only).
+### 4.3 Component Communication
 
-**Request:**
-```json
+**Example: How CourseCard Talks to LearnerDashboard**
+
+```javascript
+// LearnerDashboard.jsx (Parent)
+function LearnerDashboard({ currentUser, balance, bankSecret, onBalanceUpdate }) {
+  const [courses, setCourses] = useState([]);
+  
+  // This function will be passed to CourseCard
+  const handleEnrollCourse = async (course) => {
+    try {
+      // Call API
+      const response = await enrollCourse(
+        currentUser.id,
+        course.id,
+        bankSecret
+      );
+      
+      // Update parent state
+      onBalanceUpdate(response.newBalance);
+      
+      // Update local state
+      setEnrolledCourses([...enrolledCourses, course.id]);
+      
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  
+  return (
+    <div>
+      {courses.map(course => (
+        <CourseCard
+          key={course.id}
+          course={course}
+          onEnroll={handleEnrollCourse}  // Pass function down
+        />
+      ))}
+    </div>
+  );
+}
+
+// CourseCard.jsx (Child)
+function CourseCard({ course, onEnroll }) {
+  return (
+    <div>
+      <h3>{course.title}</h3>
+      <p>${course.price}</p>
+      <button onClick={() => onEnroll(course)}>  {/* Call parent function */}
+        Enroll Now
+      </button>
+    </div>
+  );
+}
+```
+
+**Data Flow:**
+```
+User clicks button in CourseCard
+  ↓
+Calls onEnroll(course) - goes UP to parent
+  ↓
+LearnerDashboard.handleEnrollCourse() executes
+  ↓
+Makes API call to backend
+  ↓
+Receives response
+  ↓
+Updates balance (goes UP to App.jsx via onBalanceUpdate)
+  ↓
+Updates enrolledCourses (local state)
+  ↓
+Re-render triggered
+  ↓
+CourseCard receives new props
+  ↓
+Shows "Enrolled" status
+```
+
+### 4.4 API Service Layer
+
+**Location:** `frontend/src/services/api.js`
+
+This file centralizes all backend communication:
+
+```javascript
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// Create axios instance
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' }
+});
+
+// ======= WHY THIS PATTERN? =======
+
+// 1. CENTRALIZED: All API calls in one place
+// 2. REUSABLE: Import anywhere you need
+// 3. MAINTAINABLE: Change URL once, affects everywhere
+// 4. TESTABLE: Easy to mock for testing
+
+// Example function:
+export const enrollCourse = async (learnerId, courseId, bankSecret) => {
+  try {
+    const response = await api.post('/enrollments', {
+      learnerId,
+      courseId,
+      bankSecret
+    });
+    return response.data;  // Return only the data
+  } catch (error) {
+    // Standardize error handling
+    throw error.response?.data || { error: 'Enrollment failed' };
+  }
+};
+```
+
+**Usage in Components:**
+
+```javascript
+import { enrollCourse } from '../services/api';
+
+// In component:
+const handleEnroll = async () => {
+  try {
+    const result = await enrollCourse(userId, courseId, secret);
+    console.log('Success:', result);
+  } catch (error) {
+    console.error('Error:', error.error);
+  }
+};
+```
+
+---
+
+## 5. Database Models Explained
+
+### 5.1 User Model - The Identity Foundation
+
+**File:** `backend/models/User.js`
+
+```javascript
+const userSchema = new mongoose.Schema({
+  email: {
+    type: String,
+    required: true,      // Must provide email
+    unique: true,        // No duplicate emails
+    lowercase: true,     // Auto-convert to lowercase
+    trim: true          // Remove whitespace
+  },
+  password: {
+    type: String,
+    required: true
+    // In production: Hash with bcrypt!
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  type: {
+    type: String,
+    enum: ['learner', 'instructor', 'admin'],  // Only these values allowed
+    required: true
+  },
+  accountNumber: {
+    type: String,
+    default: null        // Set when user sets up bank
+  },
+  bankSecret: {
+    type: String,
+    default: null        // User's bank PIN
+  }
+}, {
+  timestamps: true       // Auto-add createdAt, updatedAt
+});
+```
+
+**Real-World Example:**
+
+```javascript
+// When learner logs in:
 {
-  "instructorId": "instructor_id",
-  "title": "Advanced React",
-  "description": "Master React.js",
-  "price": 149,
-  "materials": [
+  _id: ObjectId("507f1f77bcf86cd799439011"),
+  email: "alice@example.com",
+  password: "pass123",           // Should be hashed!
+  name: "Alice Learner",
+  type: "learner",
+  accountNumber: "ACC_ALICE_001",
+  bankSecret: "secret123",
+  createdAt: ISODate("2026-01-01T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-16T14:30:00.000Z")
+}
+```
+
+**Why These Fields?**
+
+- **email**: Unique identifier for login
+- **type**: Determines what features user can access
+- **accountNumber**: Links to BankAccount collection
+- **bankSecret**: Validates payment transactions (like a PIN)
+
+### 5.2 Course Model - The Learning Content
+
+**File:** `backend/models/Course.js`
+
+```javascript
+const courseSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true
+  },
+  description: {
+    type: String,
+    required: true
+  },
+  price: {
+    type: Number,
+    required: true,
+    min: 0              // Can't be negative
+  },
+  instructor: {
+    type: String,       // Instructor's name
+    required: true
+  },
+  instructorId: {
+    type: String,       // Reference to User._id
+    required: true      // For queries like "show instructor's courses"
+  },
+  materials: [{         // Array of learning materials
+    type: {
+      type: String,
+      enum: ['video', 'text', 'audio', 'mcq']
+    },
+    title: String,      // e.g., "Introduction to React"
+    content: String,    // Actual text content or quiz questions
+    url: String         // Link to video/audio file
+  }]
+}, {
+  timestamps: true
+});
+```
+
+**Real-World Example:**
+
+```javascript
+{
+  _id: ObjectId("507f1f77bcf86cd799439012"),
+  title: "Web Development Fundamentals",
+  description: "Learn HTML, CSS, and JavaScript basics",
+  price: 99,
+  instructor: "John Doe",
+  instructorId: "507f1f77bcf86cd799439013",
+  materials: [
     {
-      "type": "video",
-      "title": "Introduction",
-      "url": "https://example.com/video.mp4"
+      type: "video",
+      title: "Introduction to HTML",
+      url: "https://example.com/videos/html-intro.mp4",
+      content: null
     },
     {
-      "type": "text",
-      "title": "Chapter 1",
-      "content": "React basics..."
+      type: "text",
+      title: "CSS Basics",
+      content: "CSS stands for Cascading Style Sheets...",
+      url: null
+    },
+    {
+      type: "mcq",
+      title: "JavaScript Quiz",
+      content: "Q1: What is a variable? A) ..., B) ...",
+      url: null
     }
-  ]
+  ],
+  createdAt: ISODate("2026-01-10T09:00:00.000Z")
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "course": {...},
-  "payment": 200
-}
-```
+**Why This Structure?**
 
-#### PUT /courses/:courseId/materials
-Update course materials (instructors only).
+- **materials array**: One course has many materials
+- **type field**: Frontend renders differently based on type
+- **instructorId**: Easy to query "all courses by this instructor"
+- **Embedded materials**: Fast retrieval (no joins needed)
 
-**Request:**
-```json
-{
-  "instructorId": "instructor_id",
-  "materials": [...]
-}
-```
+### 5.3 Enrollment Model - The Learning Record
 
-### Enrollment Endpoints
-
-#### POST /enrollments
-Enroll in a course.
-
-**Request:**
-```json
-{
-  "learnerId": "learner_id",
-  "courseId": "course_id",
-  "bankSecret": "mySecret123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "enrollment": {...},
-  "transaction": {...},
-  "newBalance": 901
-}
-```
-
-#### GET /enrollments/learner/:learnerId
-Get learner's enrollments.
-
-### Progress Endpoints
-
-#### GET /progress/:learnerId/:courseId
-Get course progress for a learner.
-
-**Response:**
-```json
-{
-  "success": true,
-  "progress": {
-    "completedMaterials": [0, 1, 3],
-    "lastAccessedMaterial": 3
-  }
-}
-```
-
-#### POST /progress
-Update course progress.
-
-**Request:**
-```json
-{
-  "learnerId": "learner_id",
-  "courseId": "course_id",
-  "completedMaterials": [0, 1, 2, 3],
-  "lastAccessedMaterial": 3
-}
-```
-
-### Certificate Endpoints
-
-#### POST /certificates
-Complete a course and receive certificate.
-
-**Request:**
-```json
-{
-  "learnerId": "learner_id",
-  "courseId": "course_id"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "certificate": {
-    "certificateId": "CERT1234567890",
-    "learnerName": "Alice Learner",
-    "courseTitle": "Web Development Fundamentals",
-    "issuedAt": "2026-01-16T..."
-  }
-}
-```
-
-### Admin Endpoints
-
-#### GET /admin/stats
-Get platform statistics.
-
-**Response:**
-```json
-{
-  "success": true,
-  "stats": {
-    "totalCourses": 5,
-    "totalEnrollments": 12,
-    "totalRevenue": 1188,
-    "totalLearners": 2,
-    "totalInstructors": 3,
-    "lmsBalance": 9643.40
-  }
-}
-```
-
-#### GET /admin/transactions
-Get all platform transactions.
-
----
-
-## 👥 User Flows
-
-### Learner Flow
-
-```
-1. Login → 2. Bank Setup → 3. Browse Courses → 4. Enroll & Pay 
-   ↓
-5. View Course Materials → 6. Mark Lessons Complete → 7. Get Certificate
-```
-
-**Detailed Steps:**
-
-1. **Login**: Enter email/password, select "Login as Learner"
-2. **Bank Setup**: Enter account number and PIN (first time only)
-3. **Browse**: View 5 available courses with details
-4. **Enroll**: Click "Enroll Now", payment processed automatically
-5. **Learn**: Click "Start Learning", navigate through materials
-6. **Progress**: Mark each lesson as complete
-7. **Certificate**: Complete all lessons, receive certificate
-
-### Instructor Flow
-
-```
-1. Login → 2. View Dashboard → 3. Upload Course → 4. Add Materials 
-   ↓
-5. Receive $200 → 6. Edit Materials → 7. Earn Revenue Share
-```
-
-**Detailed Steps:**
-
-1. **Login**: Enter email/password, select "Login as Instructor"
-2. **Dashboard**: View your courses and earnings
-3. **Upload**: Click "Upload New Course", enter details
-4. **Materials**: Add videos, text, quizzes
-5. **Payment**: Receive $200 upload fee instantly
-6. **Edit**: Click "Edit Materials" on any course
-7. **Revenue**: Earn 70% when learners enroll
-
-### Admin Flow
-
-```
-1. Login → 2. View Statistics → 3. Monitor Transactions → 4. Oversee Platform
-```
-
----
-
-## 🗄️ Database Schema
-
-### Users Collection
+**File:** `backend/models/Enrollment.js`
 
 ```javascript
+const enrollmentSchema = new mongoose.Schema({
+  learnerId: {
+    type: String,
+    required: true
+  },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',      // Reference to Course model
+    required: true
+  },
+  completed: {
+    type: Boolean,
+    default: false      // Changes to true when course finished
+  },
+  progress: {
+    type: Number,
+    default: 0,         // 0-100 percentage
+    min: 0,
+    max: 100
+  },
+  completedAt: {
+    type: Date,
+    default: null       // Set when completed = true
+  }
+}, {
+  timestamps: true
+});
+```
+
+**Real-World Example:**
+
+```javascript
+// Alice enrolls in Web Development course
 {
-  _id: ObjectId,
-  email: String (unique),
-  password: String,
-  name: String,
-  type: "learner" | "instructor" | "admin",
-  accountNumber: String,
-  bankSecret: String,
-  createdAt: Date,
-  updatedAt: Date
+  _id: ObjectId("507f1f77bcf86cd799439014"),
+  learnerId: "507f1f77bcf86cd799439011",
+  courseId: ObjectId("507f1f77bcf86cd799439012"),
+  completed: false,
+  progress: 45,              // 45% complete
+  completedAt: null,
+  createdAt: ISODate("2026-01-15T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-16T15:00:00.000Z")
+}
+
+// When Alice finishes:
+{
+  _id: ObjectId("507f1f77bcf86cd799439014"),
+  learnerId: "507f1f77bcf86cd799439011",
+  courseId: ObjectId("507f1f77bcf86cd799439012"),
+  completed: true,           // Changed!
+  progress: 100,             // Changed!
+  completedAt: ISODate("2026-01-20T18:30:00.000Z"),  // Set!
+  createdAt: ISODate("2026-01-15T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-20T18:30:00.000Z")     // Updated!
 }
 ```
 
-### Courses Collection
+**Why This Model?**
+
+- **Tracks relationship**: Which learner is in which course
+- **Progress tracking**: Can show "45% complete"
+- **Completion status**: Trigger certificate generation
+- **Timestamps**: Know when enrolled and completed
+
+### 5.4 Transaction Model - The Financial Record
+
+**File:** `backend/models/Transaction.js`
 
 ```javascript
+const transactionSchema = new mongoose.Schema({
+  transactionId: {
+    type: String,
+    required: true,
+    unique: true         // Prevent duplicates
+  },
+  from: {
+    type: String,        // User ID who pays
+    required: true
+  },
+  to: {
+    type: String,        // User ID who receives
+    required: true
+  },
+  amount: {
+    type: Number,
+    required: true,
+    min: 0
+  },
+  description: {
+    type: String,
+    required: true       // What was this for?
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'completed', 'failed'],
+    default: 'completed'
+  }
+}, {
+  timestamps: true       // createdAt is the transaction time
+});
+```
+
+**Real-World Example - Course Enrollment:**
+
+```javascript
+// Transaction 1: Learner pays LMS
 {
-  _id: ObjectId,
-  title: String,
-  description: String,
-  price: Number,
-  instructor: String,
-  instructorId: String,
-  materials: [{
-    type: "video" | "audio" | "text" | "mcq",
-    title: String,
-    content: String,
-    url: String
+  _id: ObjectId("..."),
+  transactionId: "TXN1705401234567",
+  from: "507f1f77bcf86cd799439011",  // Alice
+  to: "admin_id",                     // LMS
+  amount: 99,
+  description: "Enrollment in Web Development Fundamentals",
+  status: "completed",
+  createdAt: ISODate("2026-01-16T14:30:00.000Z")
+}
+
+// Transaction 2: LMS pays instructor (happens automatically)
+{
+  _id: ObjectId("..."),
+  transactionId: "TXN1705401234568",
+  from: "admin_id",                   // LMS
+  to: "507f1f77bcf86cd799439013",    // John (instructor)
+  amount: 69.30,                      // 70% of $99
+  description: "Revenue share for Web Development Fundamentals enrollment",
+  status: "completed",
+  createdAt: ISODate("2026-01-16T14:30:01.000Z")  // 1 second later
+}
+```
+
+**Why This Matters?**
+
+- **Audit trail**: Complete history of all money movements
+- **Reconciliation**: Check if amounts match
+- **Transparency**: Admin can see all transactions
+- **Debugging**: If balance is wrong, check transactions
+
+### 5.5 BankAccount Model - The Wallet
+
+**File:** `backend/models/BankAccount.js`
+
+```javascript
+const bankAccountSchema = new mongoose.Schema({
+  accountNumber: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  owner: {
+    type: String,        // User ID
+    required: true
+  },
+  balance: {
+    type: Number,
+    default: 0,
+    min: 0              // Can't go negative
+  }
+}, {
+  timestamps: true
+});
+```
+
+**Real-World Example:**
+
+```javascript
+// Alice's bank account
+{
+  _id: ObjectId("..."),
+  accountNumber: "ACC_ALICE_001",
+  owner: "507f1f77bcf86cd799439011",
+  balance: 1000,
+  createdAt: ISODate("2026-01-15T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-16T14:30:00.000Z")
+}
+
+// After buying $99 course:
+{
+  _id: ObjectId("..."),
+  accountNumber: "ACC_ALICE_001",
+  owner: "507f1f77bcf86cd799439011",
+  balance: 901,        // Updated!
+  createdAt: ISODate("2026-01-15T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-16T14:30:01.000Z")  // Updated!
+}
+```
+
+### 5.6 Progress Model - The Learning Tracker
+
+**File:** `backend/models/Progress.js`
+
+```javascript
+const progressSchema = new mongoose.Schema({
+  learnerId: {
+    type: String,
+    required: true
+  },
+  courseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
+  completedMaterials: [{
+    type: Number        // Array of material indices
   }],
-  createdAt: Date,
-  updatedAt: Date
-}
+  lastAccessedMaterial: {
+    type: Number,
+    default: 0          // Index of last viewed material
+  }
+}, {
+  timestamps: true
+});
+
+// Unique constraint: One progress record per learner per course
+progressSchema.index({ learnerId: 1, courseId: 1 }, { unique: true });
 ```
 
-### Enrollments Collection
+**Real-World Example:**
 
 ```javascript
+// Course has 5 materials (indices 0, 1, 2, 3, 4)
+// Alice completes materials 0, 1, and 3
+
 {
-  _id: ObjectId,
-  learnerId: String,
-  courseId: ObjectId,
-  completed: Boolean,
-  progress: Number (0-100),
-  completedAt: Date,
-  createdAt: Date,
-  updatedAt: Date
+  _id: ObjectId("..."),
+  learnerId: "507f1f77bcf86cd799439011",
+  courseId: ObjectId("507f1f77bcf86cd799439012"),
+  completedMaterials: [0, 1, 3],     // Completed these
+  lastAccessedMaterial: 3,            // Currently viewing this
+  createdAt: ISODate("2026-01-16T10:00:00.000Z"),
+  updatedAt: ISODate("2026-01-16T15:00:00.000Z")
+}
+
+// When Alice marks material 2 complete:
+{
+  _id: ObjectId("..."),
+  learnerId: "507f1f77bcf86cd799439011",
+  courseId: ObjectId("507f1f77bcf86cd799439012"),
+  completedMaterials: [0, 1, 2, 3],  // Added 2!
+  lastAccessedMaterial: 2,            // Updated!
+  updatedAt: ISODate("2026-01-16T15:30:00.000Z")  // Updated!
 }
 ```
 
-### Transactions Collection
+**How Frontend Uses This:**
 
 ```javascript
-{
-  _id: ObjectId,
-  transactionId: String (unique),
-  from: String,
-  to: String,
-  amount: Number,
-  description: String,
-  status: "pending" | "completed" | "failed",
-  createdAt: Date
-}
+// CourseViewer.jsx
+const materials = course.materials;  // 5 materials total
+const completed = [0, 1, 3];         // From Progress model
+
+// Show progress bar
+const progress = (completed.length / materials.length) * 100;  // 60%
+
+// Show checkmarks
+materials.map((material, index) => (
+  <div>
+    {completed.includes(index) && <CheckIcon />}
+    {material.title}
+  </div>
+));
 ```
 
-### BankAccounts Collection
+### 5.7 Certificate Model - The Achievement
+
+**File:** `backend/models/Certificate.js`
 
 ```javascript
-{
-  _id: ObjectId,
-  accountNumber: String (unique),
-  owner: String,
-  balance: Number,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
-### Certificates Collection
-
-```javascript
-{
-  _id: ObjectId,
-  certificateId: String (unique),
-  learnerId: String,
-  learnerName: String,
-  courseId: ObjectId,
-  courseTitle: String,
-  instructor: String,
-  createdAt: Date
-}
-```
-
-### Progress Collection
-
-```javascript
-{
-  _id: ObjectId,
-  learnerId: String,
-  courseId: ObjectId,
-  completedMaterials: [Number],
-  lastAccessedMaterial: Number,
-  createdAt: Date,
-  updatedAt: Date
-}
-```
-
----
-
-## 📸 Screenshots
-
-### Login Page
-Modern gradient design with role-based authentication.
-
-### Learner Dashboard
-- Course grid with enrollment status
-- Real-time balance display
-- Progress tracking
-
-### Course Viewer
-- Material sidebar navigation
-- Progress bar
-- Mark complete functionality
-- Certificate generation
-
-### Instructor Dashboard
-- Course upload form
-- Material editor
-- Revenue statistics
-
-### Admin Dashboard
-- Platform statistics
-- Transaction history
-- User metrics
-
----
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-
-**Learner Tests:**
-- [ ] Can register/login as learner
-- [ ] Bank setup works correctly
-- [ ] Can view all courses
-- [ ] Can enroll in a course
-- [ ] Payment deducts from balance
-- [ ] Can view course materials
-- [ ] Can mark lessons as complete
-- [ ] Progress persists after logout
-- [ ] Can complete course
-- [ ] Certificate is generated
-
-**Instructor Tests:**
-- [ ] Can login as instructor
-- [ ] Can upload new course
-- [ ] Receives $200 upload fee
-- [ ] Balance updates correctly
-- [ ] Can add multiple materials
-- [ ] Can edit existing courses
-- [ ] Can add/remove materials
-- [ ] Revenue share works (70%)
-
-**Admin Tests:**
-- [ ] Can login as admin
-- [ ] Dashboard shows correct stats
-- [ ] Transaction history visible
-- [ ] All metrics accurate
-
-### API Testing with cURL
-
-```bash
-# Test health endpoint
-curl http://localhost:3000/api/health
-
-# Test login
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"alice@example.com","password":"pass123","type":"learner"}'
-
-# Test get courses
-curl http://localhost:3000/api/courses
-```
-
----
-
-## 🔧 Troubleshooting
-
-### Backend Issues
-
-**Problem: MongoDB connection failed**
-
-```
-❌ MongoDB Connection Error: ...
-```
-
-**Solution:**
-- Check `.env` file has correct `MONGODB_URI`
-- Verify MongoDB Atlas cluster is running
-- Check network access (whitelist IP in Atlas)
-- Test connection string with MongoDB Compass
-
-**Problem: Port already in use**
-
-```
-Error: listen EADDRINUSE: address already in use :::3000
-```
-
-**Solution:**
-```bash
-# Find process using port 3000
-lsof -i :3000
-
-# Kill the process
-kill -9 <PID>
-
-# Or use different port in .env
-PORT=3001
-```
-
-**Problem: Module not found**
-
-```
-Error: Cannot find module ...
-```
-
-**Solution:**
-```bash
-cd backend
-rm -rf node_modules package-lock.json
-npm install
-```
-
-### Frontend Issues
-
-**Problem: Blank page / white screen**
-
-**Solution:**
-- Open browser console (F12) for errors
-- Check backend is running on port 3000
-- Verify API endpoints in `src/services/api.js`
-
-**Problem: API calls failing / CORS errors**
-
-**Solution:**
-- Ensure backend server is running
-- Check `API_BASE_URL` in frontend
-- Verify CORS is enabled in backend
-
-**Problem: Styles not loading**
-
-**Solution:**
-```bash
-cd frontend
-npm install tailwindcss postcss autoprefixer
-npx tailwindcss init -p
-```
-
-### Common Errors
-
-**Bank Secret Error:**
-- Logout and login again
-- Redo bank setup
-- Check browser console for secret value
-
-**Enrollment Fails:**
-- Check sufficient balance
-- Verify bank secret is saved
-- Check backend logs for errors
-
----
-
-## 👨‍💻 Team & Contribution
-
-### Project Team
-
-- **Developer 1**: Backend API & Database
-- **Developer 2**: Frontend UI & Components
-- **Developer 3**: Integration & Testing
-
-### Contribution Guidelines
-
-1. **Code Style**: Follow existing patterns
-2. **Comments**: Document complex logic
-3. **Testing**: Test before committing
-4. **Commits**: Clear, descriptive messages
-
-### Future Enhancements
-
-- [ ] JWT authentication
-- [ ] Real video/audio player
-- [ ] File upload for materials
-- [ ] Email notifications
-- [ ] Payment gateway (Stripe/PayPal)
-- [ ] Course reviews & ratings
-- [ ] Search & filter
-- [ ] Mobile app
-- [ ] Live chat support
-- [ ] Analytics dashboard
-
----
-
-## 📄 License
-
-This project is created for educational purposes as part of a university course project.
-
----
-
-## 📞 Support
-
-For questions or issues:
-- Check the [Troubleshooting](#troubleshooting) section
-- Review API documentation
-- Contact team members
-
----
-
-## 🙏 Acknowledgments
-
-- Course instructors for project requirements
-- MongoDB for database hosting
-- React & Node.js communities
-- Tailwind CSS for styling framework
-
----
-
-## 📊 Project Statistics
-
-- **Lines of Code**: ~8,000+
-- **Components**: 15+
-- **API Endpoints**: 25+
-- **Database Collections**: 7
-- **Features**: 30+
-- **Development Time**: 2 weeks
-
----
-
-**Built with ❤️ by the LMS Team**
-
-**Version 1.0.0** | **Last Updated**: January 2026
+const certificateSchema = new mongoose.Schema({
+  certificateId: {
+    type: String,
+    required: true,
+    unique: true         // Each certificate is unique
+  },
+  learnerId: {
+    type: String,<function_calls>
+    <invoke name="artifacts">
+    <parameter name="command">update</parameter>
+    <parameter name="id">complete_readme</parameter>
+    <parameter name="old_str">### 5.7 Certificate Model - The Achievement
+    
+    **File:** `backend/models/Certificate.js`
+    
+    ```javascript
+    const certificateSchema = new mongoose.Schema({
+      certificateId: {
+        type: String,
+        required: true,
+        unique: true         // Each certificate is unique
+      },
+      learnerId: {
+        type: String,</parameter>
+    <parameter name="new_str">### 5.7 Certificate Model - The Achievement
+    
+    **File:** `backend/models/Certificate.js`
+    
+    ```javascript
+    const certificateSchema = new mongoose.Schema({
+      certificateId: {
+        type: String,
+        required: true,
+        unique: true         // Each certificate is unique
+      },
+      learnerId: {
+        type: String,
+        required: true
+      },
+      learnerName: {
+        type: String,
+        required: true       // Printed on certificate
+      },
+      courseId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Course',
+        required: true
+      },
+      courseTitle: {
+        type: String,
+        required: true       // Printed on certificate
+      },
+      instructor: {
+        type: String,
+        required: true       // Printed on certificate
+      }
+    }, {
+      timestamps: true       // createdAt = issue date
+    });
+    ```
+    
+    **Real-World Example:**
+    
+    ```javascript
+    {
+      _id: ObjectId("..."),
+      certificateId: "CERT1705401234567",
+      learnerId: "507f1f77bcf86cd799439011",
+      learnerName: "Alice Learner",
+      courseId: ObjectId("507f1f77bcf86cd799439012"),
+      courseTitle: "Web Development Fundamentals",
+      instructor: "John Doe",
+      createdAt: ISODate("2026-01-20T18:30:00.000Z")  // Issue date
+    }
+    ```
+    
+    ---
+    
+    ## 6. Business Logic Flow
+    
+    ### 6.1 Complete Enrollment Flow (Line by Line)
+    
+    ```javascript
+    // POST /api/enrollments
+    app.post('/api/enrollments', async (req, res) => {
+      try {
+        // ===== STEP 1: EXTRACT REQUEST DATA =====
+        const { learnerId, courseId, bankSecret } = req.body;
+        
+        // ===== STEP 2: FETCH ENTITIES FROM DATABASE =====
+        const learner = await User.findById(learnerId);
+        // SQL equivalent: SELECT * FROM users WHERE _id = learnerId
+        
+        const course = await Course.findById(courseId);
+        // SQL equivalent: SELECT * FROM courses WHERE _id = courseId
+        
+        // ===== STEP 3: VALIDATION CHECKS =====
+        if (!learner || !course) {
+          return res.status(404).json({ error: 'Not found' });
+        }
+        
+        // Check duplicate enrollment
+        const existing = await Enrollment.findOne({ learnerId, courseId });
+        // SQL equivalent: 
+        // SELECT * FROM enrollments 
+        // WHERE learnerId = ? AND courseId = ?
+        
+        if (existing) {
+          return res.status(400).json({ error: 'Already enrolled' });
+        }
+        
+        // Verify bank secret (like entering PIN at ATM)
+        if (learner.bankSecret !== bankSecret) {
+          return res.status(401).json({ error: 'Invalid secret' });
+        }
+        
+        // ===== STEP 4: GET BANK ACCOUNTS =====
+        const learnerAccount = await BankAccount.findOne({ 
+          accountNumber: learner.accountNumber 
+        });
+        
+        const lmsUser = await User.findOne({ type: 'admin' });
+        const lmsAccount = await BankAccount.findOne({ 
+          accountNumber: lmsUser.accountNumber 
+        });
+        
+        // ===== STEP 5: CHECK SUFFICIENT BALANCE =====
+        if (learnerAccount.balance < course.price) {
+          return res.status(400).json({ error: 'Insufficient funds' });
+        }
+        
+        // ===== STEP 6: PROCESS PAYMENT (ATOMIC OPERATION) =====
+        // Deduct from learner
+        learnerAccount.balance -= course.price;
+        await learnerAccount.save();
+        
+        // Add to LMS
+        lmsAccount.balance += course.price;
+        await lmsAccount.save();
+        
+        // ===== STEP 7: CREATE TRANSACTION RECORD =====
+        const transaction = await Transaction.create({
+          transactionId: generateTransactionId(),
+          from: learnerId,
+          to: lmsUser._id.toString(),
+          amount: course.price,
+          description: `Enrollment in ${course.title}`,
+          status: 'completed'
+        });
+        
+        // ===== STEP 8: CREATE ENROLLMENT =====
+        const enrollment = await Enrollment.create({
+          learnerId,
+          courseId,
+          completed: false,
+          progress: 0
+        });
+        
+        // ===== STEP 9: PAY INSTRUCTOR (70% REVENUE SHARE) =====
+        const instructorPayment = course.price * 0.7;
+        
+        const instructorAccount = await BankAccount.findOne({ 
+          owner: course.instructorId 
+        });
+        
+        // Transfer from LMS to instructor
+        lmsAccount.balance -= instructorPayment;
+        await lmsAccount.save();
+        
+        instructorAccount.balance += instructorPayment;
+        await instructorAccount.save();
+        
+        // Record instructor transaction
+        await Transaction.create({
+          transactionId: generateTransactionId(),
+          from: lmsUser._id.toString(),
+          to: course.instructorId,
+          amount: instructorPayment,
+          description: `Revenue share for ${course.title}`,
+          status: 'completed'
+        });
+        
+        // ===== STEP 10: SEND SUCCESS RESPONSE =====
+        res.json({
+          success: true,
+          enrollment,
+          transaction,
+          newBalance: learnerAccount.balance
+        });
+        
+      } catch (error) {
+        // ===== STEP 11: ERROR HANDLING =====
+        console.error('Enrollment error:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+    ```
+    
+    **What Just Happened?**
+    
+    1. Learner pays $99
+    2. Learner's balance: $1000 → $901
+    3. LMS receives $99: $10000 → $10099
+    4. LMS pays instructor $69.30 (70%): $10099 → $10029.70
+    5. Instructor receives $69.30: $500 → $569.30
+    6. LMS keeps $29.70 (30% platform fee)
+    7. Two transactions recorded
+    8. Enrollment created
+    9. Frontend gets updated balance
+    
+    ---
+    
+    ## 7. Complete Setup Guide
+    
+    ### 7.1 Prerequisites Check
+    
+    ```bash
+    # Check Node.js version (need v14+)
+    node --version
+    
+    # Check npm
+    npm --version
+    
+    # Check if MongoDB is accessible (if using local)
+    mongosh --version
+    ```
+    
+    ### 7.2 MongoDB Setup (Detailed)
+    
+    **Option A: MongoDB Atlas (Cloud)**
+    
+    1. **Create Account**
+       - Go to https://www.mongodb.com/cloud/atlas
+       - Sign up (free tier available)
+       
+    2. **Create Cluster**
+       - Click "Build a Database"
+       - Choose FREE "Shared" option
+       - Select cloud provider (AWS recommended)
+       - Choose region closest to you
+       - Click "Create Cluster" (takes 3-5 minutes)
+    
+    3. **Create Database User**
+       - Click "Database Access" (left sidebar)
+       - Click "Add New Database User"
+       - Authentication Method: Password
+       - Username: `lmsuser`
+       - Password: `lmspass123` (or auto-generate)
+       - Database User Privileges: "Atlas admin"
+       - Click "Add User"
+    
+    4. **Allow Network Access**
+       - Click "Network Access" (left sidebar)
+       - Click "Add IP Address"
+       - Click "Allow Access from Anywhere" (0.0.0.0/0)
+       - Note: In production, use specific IPs only
+       - Click "Confirm"
+    
+    5. **Get Connection String**
+       - Click "Database" (left sidebar)
+       - Click "Connect" on your cluster
+       - Click "Connect your application"
+       - Driver: Node.js, Version: 4.1 or later
+       - Copy connection string:
+       ```
+       mongodb+srv://lmsuser:<password>@cluster0.xxxxx.mongodb.net/?retryWrites=true&w=majority
+       ```
+       - Replace `<password>` with actual password
+       - Add database name: `...mongodb.net/lms?retryWrites...`
+    
+    **Option B: Local MongoDB**
+    
+    ```bash
+    # macOS
+    brew tap mongodb/brew
+    brew install mongodb-community@6.0
+    brew services start mongodb-community@6.0
+    
+    # Ubuntu/Debian
+    wget -qO - https://www.mongodb.org/static/pgp/server-6.0.asc | sudo apt-key add -
+    echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-6.0.list
+    sudo apt-get update
+    sudo apt-get install -y mongodb-org
+    sudo systemctl start mongod
+    
+    # Windows
+    # Download installer from mongodb.com
+    # Run installer, choose "Complete"
+    # Check "Install MongoD as a Service"
+    ```
+    
+    Connection string: `mongodb://localhost:27017/lms`
+    
+    ### 7.3 Backend Setup (Step by Step)
+    
+    ```bash
+    # 1. Create project directory
+    mkdir lms-project
+    cd lms-project
+    
+    # 2. Create backend folder
+    mkdir backend
+    cd backend
+    
+    # 3. Initialize npm
+    npm init -y
+    
+    # 4. Install dependencies
+    npm install express mongoose cors body-parser dotenv
+    
+    # 5. Install dev dependencies
+    npm install --save-dev nodemon
+    
+    # 6. Create directory structure
+    mkdir models
+    
+    # 7. Create .env file
+    cat > .env << 'EOF'
+    PORT=3000
+    MONGODB_URI=mongodb+srv://lmsuser:lmspass123@cluster0.xxxxx.mongodb.net/lms?retryWrites=true&w=majority
+    EOF
+    
+    # Replace with your actual MongoDB URI!
+    
+    # 8. Update package.json scripts
+    # Edit package.json and add:
+    {
+      "scripts": {
+        "start": "node server.js",
+        "dev": "nodemon server.js",
+        "seed": "node seed.js"
+      }
+    }
+    
+    # 9. Create all model files in models/ folder
+    # Copy each model from the documentation above
+    
+    # 10. Create server.js
+    # Copy the complete server.js code
+    
+    # 11. Create seed.js (optional)
+    # Copy the seed script
+    
+    # 12. Test database connection
+    npm run dev
+    
+    # Should see:
+    # ✅ MongoDB Connected Successfully
+    # 🚀 LMS Server running on http://localhost:3000
+    ```
+    
+    ### 7.4 Frontend Setup (Step by Step)
+    
+    ```bash
+    # 1. Open NEW terminal (keep backend running)
+    cd ..  # Go back to lms-project directory
+    
+    # 2. Create React app
+    npx create-react-app frontend
+    cd frontend
+    
+    # 3. Install dependencies
+    npm install axios lucide-react
+    
+    # 4. Install Tailwind CSS
+    npm install -D tailwindcss postcss autoprefixer
+    npx tailwindcss init -p
+    
+    # 5. Configure Tailwind
+    # Edit tailwind.config.js:
+    module.exports = {
+      content: [
+        "./src/**/*.{js,jsx,ts,tsx}",
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    }
+    
+    # 6. Update src/index.css:
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    
+    # 7. Create folder structure
+    cd src
+    mkdir components services
+    
+    # 8. Create all component files
+    # Copy each component from documentation
+    
+    # 9. Create API service
+    # Copy api.js into services/
+    
+    # 10. Update App.jsx and index.js
+    # Copy from documentation
+    
+    # 11. Start frontend
+    npm start
+    
+    # Should open browser at http://localhost:3001
+    ```
+    
+    ### 7.5 Verification Tests
+    
+    ```bash
+    # Test 1: Backend Health
+    curl http://localhost:3000/api/health
+    # Should return: {"status":"OK","timestamp":"..."}
+    
+    # Test 2: Get Courses
+    curl http://localhost:3000/api/courses
+    # Should return JSON array of 5 courses
+    
+    # Test 3: Login
+    curl -X POST http://localhost:3000/api/auth/login \
+      -H "Content-Type: application/json" \
+      -d '{"email":"alice@example.com","password":"pass123","type":"learner"}'
+    # Should return user object
+    
+    # Test 4: Frontend loads
+    # Open http://localhost:3001
+    # Should see login page
+    ```
+    
+    ---
+    
+    ## 8. API Reference
+    
+    ### Complete Endpoint List
+    
+    | Method | Endpoint | Description | Auth Required |
+    |--------|----------|-------------|---------------|
+    | POST | /api/auth/login | User login | No |
+    | POST | /api/auth/register | Register new user | No |
+    | POST | /api/bank/setup | Setup bank account | No |
+    | GET | /api/bank/balance/:userId | Get balance | No |
+    | POST | /api/bank/transaction | Create transaction | Yes |
+    | GET | /api/courses | Get all courses | No |
+    | GET | /api/courses/:id | Get course by ID | No |
+    | GET | /api/courses/instructor/:id | Get instructor courses | No |
+    | POST | /api/courses | Upload new course | Instructor |
+    | PUT | /api/courses/:id/materials | Update materials | Instructor |
+    | POST | /api/enrollments | Enroll in course | Learner |
+    | GET | /api/enrollments/learner/:id | Get enrollments | Learner |
+    | POST | /api/certificates | Complete course | Learner |
+    | GET | /api/certificates/learner/:id | Get certificates | Learner |
+    | GET | /api/progress/:learnerId/:courseId | Get progress | Learner |
+    | POST | /api/progress | Update progress | Learner |
+    | GET | /api/admin/stats | Platform stats | Admin |
+    | GET | /api/admin/transactions | All transactions | Admin |
+    
+    ---
+    
+    ## 9. State Management
+    
+    ### Why We Don't Use Redux
+    
+    This project uses **React Context + Props** instead of Redux because:
+    
+    1. **Simple State**: Only 4 main state variables (user, view, balance, secret)
+    2. **Linear Flow**: State flows down, callbacks flow up
+    3. **No Complex Updates**: No deeply nested state
+    4. **Learning Focus**: Better to understand React first
+    
+    **When to Use Redux:**
+    - 10+ components need same state
+    - Complex state updates across app
+    - Time-travel debugging needed
+    - Server state caching
+    
+    ---
+    
+    ## 10. Security & Validation
+    
+    ### Current Security Measures
+    
+    1. **Bank Secret Validation**
+       - Required for all payments
+       - Stored in memory only (not localStorage)
+       - Verified server-side
+    
+    2. **Input Validation**
+       - Required fields checked
+       - Type validation (prices must be numbers)
+       - Range validation (balance can't be negative)
+    
+    3. **Error Handling**
+       - Try-catch on all async operations
+       - User-friendly error messages
+       - Server error logging
+    
+    ### Production Improvements Needed
+    
+    ```javascript
+    // ❌ Current (insecure for production)
+    password: String
+    
+    // ✅ Should use bcrypt
+    const bcrypt = require('bcrypt');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // ❌ Current (no authentication)
+    app.post('/api/enrollments', async (req, res) => {
+      // Anyone can call this
+    });
+    
+    // ✅ Should use JWT middleware
+    const jwt = require('jsonwebtoken');
+    app.post('/api/enrollments', authenticateToken, async (req, res) => {
+      // Only authenticated users
+    });
+    ```
+    
+    ---
+    
+    ## 🎓 Conclusion
+    
+    This LMS demonstrates:
+    
+    ✅ **Full-stack development** with MERN
+    ✅ **RESTful API design** with Express
+    ✅ **Database modeling** with Mongoose
+    ✅ **State management** in React
+    ✅ **Transaction processing** simulation
+    ✅ **Component architecture** best practices
+    
+    **Next Steps:**
+    1. Run the setup guide above
+    2. Test all user flows
+    3. Understand each model's purpose
+    4. Trace a request from button click to database
+    5. Prepare to explain the architecture
+    
+    **For Questions During Demo:**
+    - Explain the enrollment flow step-by-step
+    - Show how state updates across components
+    - Demonstrate the revenue sharing calculation
+    - Walk through the database relationships
+    
+    Good luck with your presentation! 🚀</parameter>
