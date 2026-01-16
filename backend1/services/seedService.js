@@ -1,9 +1,15 @@
+// services/seedService.js
 const User = require('../models/User');
 const Course = require('../models/Course');
 const BankAccount = require('../models/BankAccount');
+const Enrollment = require('../models/Enrollment');
+const Certificate = require('../models/Certificate');
+const Transaction = require('../models/Transaction');
+const Progress = require('../models/Progress');
 
 const initializeData = async () => {
   try {
+    // Check if data already exists
     const userCount = await User.countDocuments();
     if (userCount > 0) {
       console.log('📊 Database already initialized');
@@ -14,13 +20,53 @@ const initializeData = async () => {
 
     // Create Users
     const users = await User.insertMany([
-      { email: 'alice@example.com', password: 'pass123', name: 'Alice Learner', type: 'learner' },
-      { email: 'bob@example.com', password: 'pass123', name: 'Bob Student', type: 'learner' },
-      { email: 'john@example.com', password: 'pass123', name: 'John Doe', type: 'instructor', accountNumber: 'ACC001', bankSecret: 'secret1' },
-      { email: 'jane@example.com', password: 'pass123', name: 'Jane Smith', type: 'instructor', accountNumber: 'ACC002', bankSecret: 'secret2' },
-      { email: 'bob.j@example.com', password: 'pass123', name: 'Bob Johnson', type: 'instructor', accountNumber: 'ACC003', bankSecret: 'secret3' },
-      { email: 'admin@lms.com', password: 'admin123', name: 'Admin User', type: 'admin', accountNumber: 'ACC_LMS', bankSecret: 'lms_secret' }
+      { 
+        email: 'alice@example.com', 
+        password: 'pass123', 
+        name: 'Alice Learner', 
+        type: 'learner' 
+      },
+      { 
+        email: 'bob@example.com', 
+        password: 'pass123', 
+        name: 'Bob Student', 
+        type: 'learner' 
+      },
+      { 
+        email: 'john@example.com', 
+        password: 'pass123', 
+        name: 'John Doe', 
+        type: 'instructor', 
+        accountNumber: 'ACC001', 
+        bankSecret: 'secret1' 
+      },
+      { 
+        email: 'jane@example.com', 
+        password: 'pass123', 
+        name: 'Jane Smith', 
+        type: 'instructor', 
+        accountNumber: 'ACC002', 
+        bankSecret: 'secret2' 
+      },
+      { 
+        email: 'bob.j@example.com', 
+        password: 'pass123', 
+        name: 'Bob Johnson', 
+        type: 'instructor', 
+        accountNumber: 'ACC003', 
+        bankSecret: 'secret3' 
+      },
+      { 
+        email: 'admin@lms.com', 
+        password: 'admin123', 
+        name: 'Admin User', 
+        type: 'admin', 
+        accountNumber: 'ACC_LMS', 
+        bankSecret: 'lms_secret' 
+      }
     ]);
+
+    console.log(`✅ Created ${users.length} users`);
 
     // Create Bank Accounts
     await BankAccount.insertMany([
@@ -29,9 +75,10 @@ const initializeData = async () => {
       { accountNumber: 'ACC003', owner: users[4]._id.toString(), balance: 500 },
       { accountNumber: 'ACC_LMS', owner: users[5]._id.toString(), balance: 10000 }
     ]);
+    console.log('✅ Created bank accounts');
 
     // Create Courses
-    await Course.insertMany([
+    const courses = await Course.insertMany([
       {
         title: 'Web Development Fundamentals',
         instructor: 'John Doe',
@@ -87,10 +134,113 @@ const initializeData = async () => {
         ]
       }
     ]);
+    console.log(`✅ Created ${courses.length} courses`);
 
-    console.log('✅ Initial data seeded successfully');
+    // Create some enrollments
+    await Enrollment.insertMany([
+      {
+        learnerId: users[0]._id.toString(),
+        courseId: courses[0]._id,
+        completed: true,
+        progress: 100,
+        completedAt: new Date()
+      },
+      {
+        learnerId: users[0]._id.toString(),
+        courseId: courses[1]._id,
+        completed: false,
+        progress: 50
+      },
+      {
+        learnerId: users[1]._id.toString(),
+        courseId: courses[0]._id,
+        completed: false,
+        progress: 30
+      }
+    ]);
+    console.log('✅ Created enrollments');
+
+    // Create certificates for completed courses
+    await Certificate.insertMany([
+      {
+        certificateId: 'CERT' + Date.now() + '001',
+        learnerId: users[0]._id.toString(),
+        learnerName: users[0].name,
+        courseId: courses[0]._id,
+        courseTitle: courses[0].title,
+        instructor: courses[0].instructor
+      }
+    ]);
+    console.log('✅ Created certificates');
+
+    // Create initial transactions
+    await Transaction.insertMany([
+      {
+        transactionId: 'TXN' + Date.now() + '001',
+        from: 'system',
+        to: users[2]._id.toString(),
+        amount: 500,
+        description: 'Initial balance for instructor',
+        status: 'completed'
+      },
+      {
+        transactionId: 'TXN' + Date.now() + '002',
+        from: 'system',
+        to: users[3]._id.toString(),
+        amount: 500,
+        description: 'Initial balance for instructor',
+        status: 'completed'
+      },
+      {
+        transactionId: 'TXN' + Date.now() + '003',
+        from: 'system',
+        to: users[5]._id.toString(),
+        amount: 10000,
+        description: 'Initial platform balance',
+        status: 'completed'
+      }
+    ]);
+    console.log('✅ Created transactions');
+
+    // Create progress records
+    await Progress.insertMany([
+      {
+        learnerId: users[0]._id.toString(),
+        courseId: courses[0]._id,
+        completedMaterials: [0, 1, 2],
+        lastAccessedMaterial: 2
+      },
+      {
+        learnerId: users[0]._id.toString(),
+        courseId: courses[1]._id,
+        completedMaterials: [0, 1],
+        lastAccessedMaterial: 1
+      },
+      {
+        learnerId: users[1]._id.toString(),
+        courseId: courses[0]._id,
+        completedMaterials: [0],
+        lastAccessedMaterial: 0
+      }
+    ]);
+    console.log('✅ Created progress records');
+
+    console.log('✅ All initial data seeded successfully!');
+    console.log('\n📋 Demo Users:');
+    console.log('===============');
+    console.log('Learners:');
+    console.log('- alice@example.com / pass123');
+    console.log('- bob@example.com / pass123');
+    console.log('\nInstructors:');
+    console.log('- john@example.com / pass123 (ACC001 / secret1)');
+    console.log('- jane@example.com / pass123 (ACC002 / secret2)');
+    console.log('- bob.j@example.com / pass123 (ACC003 / secret3)');
+    console.log('\nAdmin:');
+    console.log('- admin@lms.com / admin123 (ACC_LMS / lms_secret)');
+
   } catch (error) {
     console.error('❌ Error seeding data:', error);
+    throw error;
   }
 };
 
